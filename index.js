@@ -25,10 +25,9 @@ http.createServer((req, res) => {
 
 http.createServer((req, res) => {
   const { headers, url, method } = req;
-  destinationUrl = headers['x-destination-url'] || destinationUrl;
   const downstreamResponse = req.pipe(request({
     headers: headers,
-    url: `${destinationUrl}${url}`,
+    url: `${headers['x-destination-url'] || destinationUrl}${url}`,
     method: method
   }));
 
