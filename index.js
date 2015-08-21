@@ -8,7 +8,7 @@ const argv = require('yargs')
 
 const scheme = 'http://';
 const port = argv.port || (argv.host === '127.0.0.1' ? 8000 : 80);
-let destinationUrl = argv.url || scheme + argv.host + ':' + port;
+const destinationUrl = argv.url || scheme + argv.host + ':' + port;
 const logPath = argv.log && path.join(__dirname, argv.log)
 const logStream = logPath ? fs.createWriteStream(logPath) :
   process.stdout;
@@ -25,13 +25,14 @@ http.createServer((req, res) => {
 
 http.createServer((req, res) => {
   const { headers, url, method } = req;
+  const destUrl = headers['x-destination-url'] || destinationUrl;
   const downstreamResponse = req.pipe(request({
     headers: headers,
-    url: `${headers['x-destination-url'] || destinationUrl}${url}`,
+    url: `${destUrl}${url}`,
     method: method
   }));
 
-  logStream.write(`Proxying request to: ${destinationUrl}${url} \n`);
+  logStream.write(`Proxying request to: ${destUrl}${url} \n`);
   logStream.write(`Request headers: ${JSON.stringify(headers)} \n`);
   downstreamResponse.pipe(logStream, { end: false });
   downstreamResponse.pipe(res);
